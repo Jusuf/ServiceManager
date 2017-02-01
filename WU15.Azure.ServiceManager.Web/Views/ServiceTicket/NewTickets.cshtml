@@ -1,4 +1,4 @@
-﻿@model IEnumerable<WU15.Azure.ServiceManager.Web.Models.ServiceTicketViewModel>
+﻿@model IEnumerable<WU15.Azure.ServiceManager.Web.Models.ViewModels.ServiceTicketViewModel>
 
 @{
     ViewBag.Title = "NewTickets";
@@ -47,7 +47,7 @@
             @Html.DisplayFor(modelItem => item.CustomerEmail)
         </td>
         <td>
-            @Html.ActionLink("Edit", "Edit", new { id=item.Id }) |
+            @Html.ActionLink("Edit", "EditNewTicket", new { id=item.Id }) |
             @Html.ActionLink("Details", "Details", new { id=item.Id }) |
             @Html.ActionLink("Delete", "Delete", new { id=item.Id })
         </td>

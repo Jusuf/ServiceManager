@@ -22,3 +22,9 @@ select,
 textarea {
     max-width: 280px;
 }
+
+.serviceticket-input textarea{
+    max-width: 800px;
+    width: 500px;
+    height:100px;
+}

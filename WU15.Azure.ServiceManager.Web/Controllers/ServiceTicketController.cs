@@ -12,6 +12,7 @@ using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using WU15.Azure.ServiceManager.Web.Models;
+using WU15.Azure.ServiceManager.Web.Models.ViewModels;
 
 namespace WU15.Azure.ServiceManager.Web.Controllers
 {
@@ -52,94 +53,7 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
             return View(tickets);
         }
 
-        public ActionResult NewTickets()
-        {
-            CloudStorageAccount storageAccount
-     = CloudStorageAccount.Parse(
-         CloudConfigurationManager.GetSetting("StorageConnectionString"));
-
-            CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
-
-            CloudQueue queue = queueClient.GetQueueReference("myobjectqueue");
-
-            List<ReceivedTicket> receivedTickets = new List<ReceivedTicket>();
-
-            var messages = queue.GetMessages(32, TimeSpan.FromMinutes(2), null, null);
-
-            foreach (var message in messages)
-            {
-                try
-                {
-                    //If processing was not possible, delete the message check for unprocesible messages
-                    if (message.DequeueCount < 5)
-                    {
-                        var messageItem = JsonConvert.DeserializeObject<ReceivedTicket>(message.AsString);
-
-                        receivedTickets.Add(messageItem);
-                    }
-                    else
-                    {
-                        System.Console.WriteLine("De-queueeing failed");
-                    }
-
-                    // Delete the message so that it becomes invisible for other workers
-                    queue.DeleteMessage(message);
-                }
-                catch (Exception e)
-                {
-
-                    System.Console.WriteLine(string.Format("An excepted error occured: {0}", e.Message));
-                }
-            }
-
-            if (receivedTickets.Count > 0)
-            {
-                foreach (var receivedTicket in receivedTickets)
-                {
-                    ServiceTicket newTicket = new ServiceTicket()
-                    {
-                        CreatedDate = receivedTicket.CreatedDate,
-                        CustomerEmail = receivedTicket.UserEmail,
-                        CustomerTicketId = receivedTicket.Id,
-                        CustomerId = receivedTicket.UserId,
-                        Description = receivedTicket.Description
-                    };
-                    db.ServiceTickets.Add(newTicket);
-
-                }
-
-                db.SaveChanges();
-            }
-
-            // Get tickets
-            var userId = User.Identity.GetUserId();
-
-            var serviceTickets = db.ServiceTickets.Where(st => st.ResponsibleUser.Id == null).ToList();
-
-            List<ServiceTicketViewModel> tickets = new List<ServiceTicketViewModel>();
-
-            if (serviceTickets.Count > 0)
-            {
-                foreach (var serviceTicket in serviceTickets)
-                {
-                    ServiceTicketViewModel ticket = new ServiceTicketViewModel()
-                    {
-                        Id = serviceTicket.Id,
-                        Description = serviceTicket.Description,
-                        CreatedDate = serviceTicket.CreatedDate,
-                        Done = serviceTicket.Done,
-                        DoneDate = serviceTicket.DoneDate.ToString() ?? String.Empty,
-                        CustomerEmail = serviceTicket.CustomerEmail
-                    };
-
-                    tickets.Add(ticket);
-                }
-            }
-
-
-
-            return View(tickets);
-        }
+       
 
         // GET: ServiceTickets/Details/5
         public ActionResult Details(Guid? id)
@@ -242,6 +156,157 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
             db.ServiceTickets.Remove(serviceTicket);
             db.SaveChanges();
             return RedirectToAction("Index");
+        }
+
+        public ActionResult NewTickets()
+        {
+            CloudStorageAccount storageAccount
+     = CloudStorageAccount.Parse(
+         CloudConfigurationManager.GetSetting("StorageConnectionString"));
+
+            CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
+
+            CloudQueue queue = queueClient.GetQueueReference("myobjectqueue");
+
+            List<ReceivedTicket> receivedTickets = new List<ReceivedTicket>();
+
+            var messages = queue.GetMessages(32, TimeSpan.FromMinutes(2), null, null);
+
+            foreach (var message in messages)
+            {
+                try
+                {
+                    //If processing was not possible, delete the message check for unprocesible messages
+                    if (message.DequeueCount < 5)
+                    {
+                        var messageItem = JsonConvert.DeserializeObject<ReceivedTicket>(message.AsString);
+
+                        receivedTickets.Add(messageItem);
+                    }
+                    else
+                    {
+                        System.Console.WriteLine("De-queueeing failed");
+                    }
+
+                    // Delete the message so that it becomes invisible for other workers
+                    queue.DeleteMessage(message);
+                }
+                catch (Exception e)
+                {
+
+                    System.Console.WriteLine(string.Format("An excepted error occured: {0}", e.Message));
+                }
+            }
+
+            if (receivedTickets.Count > 0)
+            {
+                foreach (var receivedTicket in receivedTickets)
+                {
+                    ServiceTicket newTicket = new ServiceTicket()
+                    {
+                        CreatedDate = receivedTicket.CreatedDate,
+                        CustomerEmail = receivedTicket.UserEmail,
+                        CustomerTicketId = receivedTicket.Id,
+                        CustomerId = receivedTicket.UserId,
+                        Description = receivedTicket.Description
+                    };
+                    db.ServiceTickets.Add(newTicket);
+
+                }
+
+                db.SaveChanges();
+            }
+
+            // Get tickets
+            var userId = User.Identity.GetUserId();
+
+            var serviceTickets = db.ServiceTickets.Where(st => st.ResponsibleUser.Id == null).ToList();
+
+            List<ServiceTicketViewModel> tickets = new List<ServiceTicketViewModel>();
+
+            if (serviceTickets.Count > 0)
+            {
+                foreach (var serviceTicket in serviceTickets)
+                {
+                    ServiceTicketViewModel ticket = new ServiceTicketViewModel()
+                    {
+                        Id = serviceTicket.Id,
+                        Description = serviceTicket.Description,
+                        CreatedDate = serviceTicket.CreatedDate,
+                        Done = serviceTicket.Done,
+                        DoneDate = serviceTicket.DoneDate.ToString() ?? String.Empty,
+                        CustomerEmail = serviceTicket.CustomerEmail
+                    };
+
+                    tickets.Add(ticket);
+                }
+            }
+
+
+
+            return View(tickets);
+        }
+
+        // GET: ServiceTickets/Edit/5
+        public ActionResult EditNewTicket(Guid? id)
+        {
+           
+
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            ServiceTicket serviceTicket = db.ServiceTickets.Find(id);
+
+            ServiceTicketViewModel serviceTicketModel = new ServiceTicketViewModel()
+            {
+                Id = serviceTicket.Id,
+                Description = serviceTicket.Description,
+                CreatedDate = serviceTicket.CreatedDate,
+                Done = serviceTicket.Done,
+                DoneDate = serviceTicket.DoneDate.ToString() ?? String.Empty,
+                CustomerEmail = serviceTicket.CustomerEmail,
+                ResponsibleUser = serviceTicket.ResponsibleUser,
+                Employees = db.Users.ToList()
+            };
+
+
+
+            if (serviceTicket == null)
+            {
+                return HttpNotFound();
+            }
+            return View(serviceTicketModel);
+        }
+
+        // POST: ServiceTickets/Edit/5
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
+        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EditNewTicket(ServiceTicketViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                ServiceTicket serviceTicket = db.ServiceTickets.Find(model.Id);
+
+                if (model.ResponsibleUser.Id != String.Empty)
+                {
+                    ApplicationUser selectedUser = db.Users.FirstOrDefault(x => x.Id == model.ResponsibleUser.Id);
+
+                    serviceTicket.ResponsibleUser = selectedUser;
+                }
+
+                serviceTicket.Description = model.Description;
+
+
+                db.Entry(serviceTicket).State = EntityState.Modified;
+
+                db.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            return View(model);
         }
 
         protected override void Dispose(bool disposing)
