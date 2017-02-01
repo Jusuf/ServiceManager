@@ -1,4 +1,8 @@
 ﻿using Microsoft.AspNet.Identity;
+using Microsoft.Azure;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Queue;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -43,13 +47,71 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
                 }
             }
 
-           
+
 
             return View(tickets);
         }
 
         public ActionResult NewTickets()
         {
+            CloudStorageAccount storageAccount
+     = CloudStorageAccount.Parse(
+         CloudConfigurationManager.GetSetting("StorageConnectionString"));
+
+            CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
+
+            CloudQueue queue = queueClient.GetQueueReference("myobjectqueue");
+
+            List<ReceivedTicket> receivedTickets = new List<ReceivedTicket>();
+
+            var messages = queue.GetMessages(32, TimeSpan.FromMinutes(2), null, null);
+
+            foreach (var message in messages)
+            {
+                try
+                {
+                    //If processing was not possible, delete the message check for unprocesible messages
+                    if (message.DequeueCount < 5)
+                    {
+                        var messageItem = JsonConvert.DeserializeObject<ReceivedTicket>(message.AsString);
+
+                        receivedTickets.Add(messageItem);
+                    }
+                    else
+                    {
+                        System.Console.WriteLine("De-queueeing failed");
+                    }
+
+                    // Delete the message so that it becomes invisible for other workers
+                    queue.DeleteMessage(message);
+                }
+                catch (Exception e)
+                {
+
+                    System.Console.WriteLine(string.Format("An excepted error occured: {0}", e.Message));
+                }
+            }
+
+            if (receivedTickets.Count > 0)
+            {
+                foreach (var receivedTicket in receivedTickets)
+                {
+                    ServiceTicket newTicket = new ServiceTicket()
+                    {
+                        CreatedDate = receivedTicket.CreatedDate,
+                        CustomerEmail = receivedTicket.UserEmail,
+                        CustomerTicketId = receivedTicket.Id,
+                        CustomerId = receivedTicket.UserId,
+                        Description = receivedTicket.Description
+                    };
+                    db.ServiceTickets.Add(newTicket);
+
+                }
+
+                db.SaveChanges();
+            }
+
+            // Get tickets
             var userId = User.Identity.GetUserId();
 
             var serviceTickets = db.ServiceTickets.Where(st => st.ResponsibleUser.Id == null).ToList();
