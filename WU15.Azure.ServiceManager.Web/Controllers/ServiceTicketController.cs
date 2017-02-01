@@ -18,8 +18,24 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
         // GET: ServiceTickets
         public ActionResult Index()
         {
+            List<ServiceTicketViewModel> tickets = new List<ServiceTicketViewModel>();
 
-            return View(db.ServiceTickets.ToList());
+            foreach (var serviceTicket in db.ServiceTickets.ToList())
+            {
+                ServiceTicketViewModel ticket = new ServiceTicketViewModel()
+                {
+                    Id = serviceTicket.Id,
+                    Description = serviceTicket.Description,
+                    CreatedDate = serviceTicket.CreatedDate,
+                    Done = serviceTicket.Done,
+                    DoneDate = serviceTicket.DoneDate.ToString() ?? String.Empty,
+                    CustomerEmail = serviceTicket.CustomerEmail
+                };
+
+                tickets.Add(ticket);
+            }
+
+            return View(tickets);
         }
 
         // GET: ServiceTickets/Details/5

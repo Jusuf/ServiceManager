@@ -1,4 +1,4 @@
-﻿@model IEnumerable<WU15.Azure.ServiceManager.Web.Models.ServiceTicket>
+﻿@model IEnumerable<WU15.Azure.ServiceManager.Web.Models.ServiceTicketViewModel>
 
 @{
     ViewBag.Title = "Index";
@@ -14,23 +14,15 @@
         <th>
             @Html.DisplayNameFor(model => model.Description)
         </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Done)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.TicketIsWithdrawn)
-        </th>
+        
         <th>
             @Html.DisplayNameFor(model => model.CreatedDate)
         </th>
         <th>
+            @Html.DisplayNameFor(model => model.Done)
+        </th>
+        <th>
             @Html.DisplayNameFor(model => model.DoneDate)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.CustomerTicketId)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.CustomerId)
         </th>
         <th>
             @Html.DisplayNameFor(model => model.CustomerEmail)
@@ -43,23 +35,16 @@
         <td>
             @Html.DisplayFor(modelItem => item.Description)
         </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Done)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.TicketIsWithdrawn)
-        </td>
+       
         <td>
             @Html.DisplayFor(modelItem => item.CreatedDate)
         </td>
         <td>
+            @Html.DisplayFor(modelItem => item.Done)
+        </td>
+
+        <td>
             @Html.DisplayFor(modelItem => item.DoneDate)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.CustomerTicketId)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.CustomerId)
         </td>
         <td>
             @Html.DisplayFor(modelItem => item.CustomerEmail)
