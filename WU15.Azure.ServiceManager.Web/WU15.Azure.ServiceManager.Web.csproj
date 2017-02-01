@@ -221,6 +221,10 @@
     <Compile Include="Migrations\201701311324457_Added_ServiceTicket_Model.Designer.cs">
       <DependentUpon>201701311324457_Added_ServiceTicket_Model.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201702010823149_Added_some_nulls_on_Serviceticket.cs" />
+    <Compile Include="Migrations\201702010823149_Added_some_nulls_on_Serviceticket.Designer.cs">
+      <DependentUpon>201702010823149_Added_some_nulls_on_Serviceticket.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\IdentityModels.cs" />
@@ -334,6 +338,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201701311324457_Added_ServiceTicket_Model.resx">
       <DependentUpon>201701311324457_Added_ServiceTicket_Model.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201702010823149_Added_some_nulls_on_Serviceticket.resx">
+      <DependentUpon>201702010823149_Added_some_nulls_on_Serviceticket.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

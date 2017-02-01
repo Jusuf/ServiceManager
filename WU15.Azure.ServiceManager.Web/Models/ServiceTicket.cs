@@ -23,9 +23,9 @@ namespace WU15.Azure.ServiceManager.Web.Models
 
         public DateTime? DoneDate { get; set; }
 
-        public Guid CustomerTicketId { get; set; }
+        public Guid? CustomerTicketId { get; set; }
 
-        public Guid CustomerId { get; set; }
+        public Guid? CustomerId { get; set; }
 
         public string CustomerEmail { get; set; }
 

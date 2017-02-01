@@ -41,5 +41,7 @@ namespace WU15.Azure.ServiceManager.Web.Models
 
             base.OnModelCreating(modelBuilder);
         }
+
+        public System.Data.Entity.DbSet<WU15.Azure.ServiceManager.Web.Models.ServiceTicketViewModel> ServiceTicketViewModels { get; set; }
     }
 }

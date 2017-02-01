@@ -10,6 +10,7 @@ using WU15.Azure.ServiceManager.Web.Models;
 
 namespace WU15.Azure.ServiceManager.Web.Controllers
 {
+    [Authorize]
     public class ServiceTicketController : Controller
     {
         private ApplicationDbContext db = new ApplicationDbContext();
@@ -39,7 +40,9 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
         // GET: ServiceTickets/Create
         public ActionResult Create()
         {
-            return View();
+            ServiceTicketViewModel model = new ServiceTicketViewModel();
+
+            return View(model);
         }
 
         // POST: ServiceTickets/Create
@@ -47,11 +50,15 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "Id,Description,Done,TicketIsWithdrawn,CreatedDate,DoneDate,CustomerTicketId,CustomerId,CustomerEmail")] ServiceTicket serviceTicket)
+        public ActionResult Create([Bind(Include = "Description")] ServiceTicket serviceTicket)
         {
             if (ModelState.IsValid)
             {
+                
+
                 serviceTicket.Id = Guid.NewGuid();
+                serviceTicket.CreatedDate = DateTime.Now;
+                
                 db.ServiceTickets.Add(serviceTicket);
                 db.SaveChanges();
                 return RedirectToAction("Index");
