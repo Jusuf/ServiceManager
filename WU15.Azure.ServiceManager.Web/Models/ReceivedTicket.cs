@@ -15,7 +15,7 @@ namespace WU15.Azure.ServiceManager.Web.Models
 
         public DateTime CreatedDate { get; set; }
 
-        public DateTime DoneDate { get; set; }
+        public string DoneDate { get; set; }
 
         public Guid UserId { get; set; }
 
