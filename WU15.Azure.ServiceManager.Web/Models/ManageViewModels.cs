@@ -2,9 +2,34 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNet.Identity;
 using Microsoft.Owin.Security;
+using System;
+using System.ComponentModel;
 
 namespace WU15.Azure.ServiceManager.Web.Models
 {
+    public class ServiceTicketViewModel
+    {
+        public Guid Id { get; set; }
+
+        [Required(ErrorMessage = "Du måste ange beskrivning.")]
+        [DisplayName("Felbeskrivning")]
+        [StringLength(200, ErrorMessage = "Felet måste beskrivas.", MinimumLength = 1)]
+        public string Description { get; set; }
+
+        [DisplayName("Klar")]
+        public bool Done { get; set; }
+
+        [DisplayName("Skapad")]
+        public DateTime CreatedDate { get; set; }
+
+        [DisplayName("Klardatum")]
+        public string DoneDate { get; set; }
+
+        [DisplayName("Kund e-post")]
+        public string CustomerEmail { get; set; }
+
+    }
+
     public class IndexViewModel
     {
         public bool HasPassword { get; set; }

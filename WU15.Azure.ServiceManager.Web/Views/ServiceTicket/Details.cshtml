@@ -1,0 +1,82 @@
+﻿@model WU15.Azure.ServiceManager.Web.Models.ServiceTicket
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>ServiceTicket</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Description)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Description)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Done)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Done)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.TicketIsWithdrawn)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.TicketIsWithdrawn)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CreatedDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CreatedDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.DoneDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.DoneDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CustomerTicketId)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CustomerTicketId)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CustomerId)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CustomerId)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CustomerEmail)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CustomerEmail)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>
