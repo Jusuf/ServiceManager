@@ -48,6 +48,37 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
             return View(tickets);
         }
 
+        public ActionResult NewTickets()
+        {
+            var userId = User.Identity.GetUserId();
+
+            var serviceTickets = db.ServiceTickets.Where(st => st.ResponsibleUser.Id == null).ToList();
+
+            List<ServiceTicketViewModel> tickets = new List<ServiceTicketViewModel>();
+
+            if (serviceTickets.Count > 0)
+            {
+                foreach (var serviceTicket in serviceTickets)
+                {
+                    ServiceTicketViewModel ticket = new ServiceTicketViewModel()
+                    {
+                        Id = serviceTicket.Id,
+                        Description = serviceTicket.Description,
+                        CreatedDate = serviceTicket.CreatedDate,
+                        Done = serviceTicket.Done,
+                        DoneDate = serviceTicket.DoneDate.ToString() ?? String.Empty,
+                        CustomerEmail = serviceTicket.CustomerEmail
+                    };
+
+                    tickets.Add(ticket);
+                }
+            }
+
+
+
+            return View(tickets);
+        }
+
         // GET: ServiceTickets/Details/5
         public ActionResult Details(Guid? id)
         {

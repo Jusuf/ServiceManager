@@ -317,6 +317,7 @@
     <Content Include="Views\ServiceTicket\Details.cshtml" />
     <Content Include="Views\ServiceTicket\Edit.cshtml" />
     <Content Include="Views\ServiceTicket\Index.cshtml" />
+    <Content Include="Views\ServiceTicket\NewTickets.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
