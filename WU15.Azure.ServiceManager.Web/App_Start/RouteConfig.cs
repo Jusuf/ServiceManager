@@ -17,7 +17,7 @@ namespace WU15.Azure.ServiceManager.Web
                 name: "Default",
                 url: "{controller}/{action}/{id}",
                 defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional },
-                namespaces: new[] { "WU15.Azure.ServiceManager.Web.Controlers" }
+                namespaces: new[] { "WU15.Azure.ServiceManager.Web.Controllers" }
             );
         }
     }
