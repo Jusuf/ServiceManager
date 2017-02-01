@@ -28,6 +28,9 @@ namespace WU15.Azure.ServiceManager.Web.Models
         [DisplayName("Kund e-post")]
         public string CustomerEmail { get; set; }
 
+        [DisplayName("Ansvarig")]
+        public ApplicationUser ResponsibleUser { get; set; }
+
     }
 
     public class IndexViewModel

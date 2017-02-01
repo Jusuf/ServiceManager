@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNet.Identity;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
@@ -18,22 +19,31 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
         // GET: ServiceTickets
         public ActionResult Index()
         {
+            var userId = User.Identity.GetUserId();
+
+            var serviceTickets = db.ServiceTickets.Where(st => st.ResponsibleUser.Id == userId).ToList();
+
             List<ServiceTicketViewModel> tickets = new List<ServiceTicketViewModel>();
 
-            foreach (var serviceTicket in db.ServiceTickets.ToList())
+            if (serviceTickets.Count > 0)
             {
-                ServiceTicketViewModel ticket = new ServiceTicketViewModel()
+                foreach (var serviceTicket in serviceTickets)
                 {
-                    Id = serviceTicket.Id,
-                    Description = serviceTicket.Description,
-                    CreatedDate = serviceTicket.CreatedDate,
-                    Done = serviceTicket.Done,
-                    DoneDate = serviceTicket.DoneDate.ToString() ?? String.Empty,
-                    CustomerEmail = serviceTicket.CustomerEmail
-                };
+                    ServiceTicketViewModel ticket = new ServiceTicketViewModel()
+                    {
+                        Id = serviceTicket.Id,
+                        Description = serviceTicket.Description,
+                        CreatedDate = serviceTicket.CreatedDate,
+                        Done = serviceTicket.Done,
+                        DoneDate = serviceTicket.DoneDate.ToString() ?? String.Empty,
+                        CustomerEmail = serviceTicket.CustomerEmail
+                    };
 
-                tickets.Add(ticket);
+                    tickets.Add(ticket);
+                }
             }
+
+           
 
             return View(tickets);
         }
@@ -70,11 +80,12 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                
+                var user = db.Users.Find(User.Identity.GetUserId());
 
                 serviceTicket.Id = Guid.NewGuid();
                 serviceTicket.CreatedDate = DateTime.Now;
-                
+                serviceTicket.ResponsibleUser = user;
+
                 db.ServiceTickets.Add(serviceTicket);
                 db.SaveChanges();
                 return RedirectToAction("Index");
