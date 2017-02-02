@@ -77,7 +77,7 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
 
             var userId = User.Identity.GetUserId();
 
-            var serviceTickets = db.ServiceTickets.Where(st => st.ResponsibleUser.Id == userId && st.TicketIsWithdrawn == false).ToList();
+            var serviceTickets = db.ServiceTickets.Include("ResponsibleUser").Where(st => st.ResponsibleUser.Id.ToString() == userId && st.TicketIsWithdrawn == false).ToList();
 
             List<ServiceTicketViewModel> tickets = new List<ServiceTicketViewModel>();
 
