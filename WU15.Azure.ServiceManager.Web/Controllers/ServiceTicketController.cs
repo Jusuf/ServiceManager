@@ -53,7 +53,7 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
             return View(tickets);
         }
 
-       
+
 
         // GET: ServiceTickets/Details/5
         public ActionResult Details(Guid? id)
@@ -250,7 +250,7 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
         // GET: ServiceTickets/Edit/5
         public ActionResult EditNewTicket(Guid? id)
         {
-           
+
 
             if (id == null)
             {
@@ -308,6 +308,40 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
             }
             return View(model);
         }
+
+        // GET: ServiceTicketsHistory
+        public ActionResult ServiceTicketHistory()
+        {
+            var userId = User.Identity.GetUserId();
+
+            var serviceTickets = db.ServiceTickets.Where(st => st.ResponsibleUser.Id == userId
+                                                            && st.Done == true).ToList();
+
+            List<ServiceTicketViewModel> tickets = new List<ServiceTicketViewModel>();
+
+            if (serviceTickets.Count > 0)
+            {
+                foreach (var serviceTicket in serviceTickets)
+                {
+                    ServiceTicketViewModel ticket = new ServiceTicketViewModel()
+                    {
+                        Id = serviceTicket.Id,
+                        Description = serviceTicket.Description,
+                        CreatedDate = serviceTicket.CreatedDate,
+                        Done = serviceTicket.Done,
+                        DoneDate = serviceTicket.DoneDate.ToString() ?? String.Empty,
+                        CustomerEmail = serviceTicket.CustomerEmail
+                    };
+
+                    tickets.Add(ticket);
+                }
+            }
+
+
+
+            return View(tickets);
+        }
+
 
         protected override void Dispose(bool disposing)
         {

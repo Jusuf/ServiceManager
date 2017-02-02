@@ -359,6 +359,7 @@
     <Content Include="Views\ServiceTicket\Index.cshtml" />
     <Content Include="Views\ServiceTicket\NewTickets.cshtml" />
     <Content Include="Views\ServiceTicket\EditNewTicket.cshtml" />
+    <Content Include="Views\ServiceTicket\ServiceTicketHistory.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

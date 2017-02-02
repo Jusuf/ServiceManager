@@ -33,7 +33,7 @@ namespace WU15.Azure.ServiceManager.Web.Models
             return new ApplicationDbContext();
         }
 
-        public DbSet<ServiceTicket> ServiceTickets { get; set; }
+        
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -41,5 +41,8 @@ namespace WU15.Azure.ServiceManager.Web.Models
 
             base.OnModelCreating(modelBuilder);
         }
+
+        public DbSet<ServiceTicket> ServiceTickets { get; set; }
+
     }
 }
