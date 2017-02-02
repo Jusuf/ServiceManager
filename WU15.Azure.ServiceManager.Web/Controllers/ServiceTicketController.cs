@@ -23,13 +23,13 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
     {
         private ApplicationDbContext db = new ApplicationDbContext();
 
-        public void SaveTicketAsWithdrown(string ticketId)
+        public void SaveTicketAsWithdrown(string customerTicketId)
         {
             ApplicationDbContext context = new ApplicationDbContext();
 
             ServiceTicket serviceTicket = new ServiceTicket();
 
-            serviceTicket = context.ServiceTickets.Where(st => st.CustomerTicketId.ToString() == ticketId).FirstOrDefault();
+            serviceTicket = context.ServiceTickets.Where(st => st.CustomerTicketId.ToString() == customerTicketId).FirstOrDefault();
 
             if (serviceTicket != null)
             {
@@ -45,12 +45,25 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
         // GET: ServiceTickets
         public ActionResult Index()
         {
-            var conectionString = CloudConfigurationManager.GetSetting("Microsoft.ServiceBus.ConnectionString");
+            var connectionString = CloudConfigurationManager.GetSetting("Microsoft.ServiceBus.ConnectionString");
 
             var topic = "tickets";
-            var subscription = "addressedTickets";
+            var subscription = "withdrownTickets";
 
-            var client = SubscriptionClient.CreateFromConnectionString(conectionString, topic, subscription);
+            var nameSpaceManager = NamespaceManager.CreateFromConnectionString(connectionString);
+
+            if (!nameSpaceManager.TopicExists(topic))
+            {
+                nameSpaceManager.CreateTopic(topic);
+            }
+
+            // Create subscription.
+            if (!nameSpaceManager.SubscriptionExists(topic, subscription))
+            {
+                nameSpaceManager.CreateSubscription(topic, subscription);
+            }
+
+            var client = SubscriptionClient.CreateFromConnectionString(connectionString, topic, subscription);
 
             List<Guid> messageList = new List<Guid>();
 
@@ -384,7 +397,7 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
             var userId = User.Identity.GetUserId();
 
             var serviceTickets = db.ServiceTickets.Where(st => st.ResponsibleUser.Id == userId
-                                                            && st.Done == true).ToList();
+                                                            && st.Done == true || st.TicketIsWithdrawn == true).ToList();
 
             List<ServiceTicketViewModel> tickets = new List<ServiceTicketViewModel>();
 
