@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNet.Identity;
 using Microsoft.Azure;
+using Microsoft.ServiceBus;
+using Microsoft.ServiceBus.Messaging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json;
@@ -47,8 +49,6 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
                     tickets.Add(ticket);
                 }
             }
-
-
 
             return View(tickets);
         }
@@ -242,8 +242,6 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
                 }
             }
 
-
-
             return View(tickets);
         }
 
@@ -270,8 +268,6 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
                 ResponsibleUser = serviceTicket.ResponsibleUser,
                 Employees = db.Users.ToList()
             };
-
-
 
             if (serviceTicket == null)
             {
@@ -304,6 +300,43 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
                 db.Entry(serviceTicket).State = EntityState.Modified;
 
                 db.SaveChanges();
+
+                // Servicebus message
+
+                var connectionString = CloudConfigurationManager.GetSetting("Microsoft.ServiceBus.ConnectionString");
+
+                var nameSpaceManager = NamespaceManager.CreateFromConnectionString(connectionString);
+
+                var topic = "tickets";
+                var subscription = "addressedTickets";
+
+                // Create a topic.
+                if (!nameSpaceManager.TopicExists(topic))
+                {
+                    nameSpaceManager.CreateTopic(topic);
+                }
+
+                // Create subscription.
+                if (!nameSpaceManager.SubscriptionExists(topic, subscription))
+                {
+                    nameSpaceManager.CreateSubscription(topic, subscription);
+                }
+
+                TopicClient client = TopicClient.CreateFromConnectionString(connectionString, topic);
+
+                var messageText = "";
+                 
+                if (serviceTicket.CustomerTicketId != null)
+                {
+                    messageText = serviceTicket.CustomerTicketId.ToString();
+                }
+
+                if (messageText != String.Empty)
+                {
+                    var message = new BrokeredMessage(messageText);
+                    client.Send(message);
+                }
+
                 return RedirectToAction("Index");
             }
             return View(model);
@@ -336,8 +369,6 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
                     tickets.Add(ticket);
                 }
             }
-
-
 
             return View(tickets);
         }
