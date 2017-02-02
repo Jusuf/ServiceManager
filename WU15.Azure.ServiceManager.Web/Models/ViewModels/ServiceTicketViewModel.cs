@@ -20,6 +20,9 @@ namespace WU15.Azure.ServiceManager.Web.Models.ViewModels
         [DisplayName("Klar")]
         public bool Done { get; set; }
 
+        [DisplayName("Återkallad")]
+        public bool Withdrown { get; set; }
+
         [DisplayName("Skapad")]
         public DateTime CreatedDate { get; set; }
 

@@ -412,7 +412,8 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
                         CreatedDate = serviceTicket.CreatedDate,
                         Done = serviceTicket.Done,
                         DoneDate = serviceTicket.DoneDate.ToString() ?? String.Empty,
-                        CustomerEmail = serviceTicket.CustomerEmail
+                        CustomerEmail = serviceTicket.CustomerEmail,
+                        Withdrown = serviceTicket.TicketIsWithdrawn
                     };
 
                     tickets.Add(ticket);
