@@ -15,6 +15,7 @@ using System.Web;
 using System.Web.Mvc;
 using WU15.Azure.ServiceManager.Web.Models;
 using WU15.Azure.ServiceManager.Web.Models.ViewModels;
+using WU15.Azure.ServiceManager.Web.Services;
 
 namespace WU15.Azure.ServiceManager.Web.Controllers
 {
@@ -23,57 +24,10 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
     {
         private ApplicationDbContext db = new ApplicationDbContext();
 
-        public void SaveTicketAsWithdrown(string customerTicketId)
-        {
-            ApplicationDbContext context = new ApplicationDbContext();
-
-            ServiceTicket serviceTicket = new ServiceTicket();
-
-            serviceTicket = context.ServiceTickets.Where(st => st.CustomerTicketId.ToString() == customerTicketId).FirstOrDefault();
-
-            if (serviceTicket != null)
-            {
-                serviceTicket.TicketIsWithdrawn = true;
-
-                context.Entry(serviceTicket).State = EntityState.Modified;
-
-                context.SaveChanges();
-            }
-
-        }
-
         // GET: ServiceTickets
         public ActionResult Index()
         {
-            var connectionString = CloudConfigurationManager.GetSetting("Microsoft.ServiceBus.ConnectionString");
-
-            var topic = "tickets";
-            var subscription = "withdrownTickets";
-
-            var nameSpaceManager = NamespaceManager.CreateFromConnectionString(connectionString);
-
-            if (!nameSpaceManager.TopicExists(topic))
-            {
-                nameSpaceManager.CreateTopic(topic);
-            }
-
-            // Create subscription.
-            if (!nameSpaceManager.SubscriptionExists(topic, subscription))
-            {
-                nameSpaceManager.CreateSubscription(topic, subscription);
-            }
-
-            var client = SubscriptionClient.CreateFromConnectionString(connectionString, topic, subscription);
-
-            List<Guid> messageList = new List<Guid>();
-
-            client.OnMessage(message =>
-            {
-                var messageContent = String.Format(message.GetBody<string>());
-
-                SaveTicketAsWithdrown(messageContent);
-                message.Complete();
-            });
+            MessageManager.GetServiceTicketWithdrowmMessages();
 
             var userId = User.Identity.GetUserId();
 
@@ -101,8 +55,6 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
 
             return View(tickets);
         }
-
-
 
         // GET: ServiceTickets/Details/5
         public ActionResult Details(Guid? id)
@@ -174,8 +126,18 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
         {
             if (ModelState.IsValid)
             {
+                var ticketBeforeUpdate = db.ServiceTickets.Find(serviceTicket);
+
                 db.Entry(serviceTicket).State = EntityState.Modified;
                 db.SaveChanges();
+
+                // Send message
+
+                if (serviceTicket.Done && !ticketBeforeUpdate.Done)
+                {
+                    MessageManager.SendServiceTicketDoneMessage(serviceTicket.CustomerTicketId);
+                }
+
                 return RedirectToAction("Index");
             }
             return View(serviceTicket);
@@ -345,46 +307,13 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
 
                 serviceTicket.Description = model.Description;
 
-
                 db.Entry(serviceTicket).State = EntityState.Modified;
 
                 db.SaveChanges();
 
                 // Servicebus message
 
-                var connectionString = CloudConfigurationManager.GetSetting("Microsoft.ServiceBus.ConnectionString");
-
-                var nameSpaceManager = NamespaceManager.CreateFromConnectionString(connectionString);
-
-                var topic = "tickets";
-                var subscription = "addressedTickets";
-
-                // Create a topic.
-                if (!nameSpaceManager.TopicExists(topic))
-                {
-                    nameSpaceManager.CreateTopic(topic);
-                }
-
-                // Create subscription.
-                if (!nameSpaceManager.SubscriptionExists(topic, subscription))
-                {
-                    nameSpaceManager.CreateSubscription(topic, subscription);
-                }
-
-                TopicClient client = TopicClient.CreateFromConnectionString(connectionString, topic);
-
-                var messageText = "";
-                 
-                if (serviceTicket.CustomerTicketId != null)
-                {
-                    messageText = serviceTicket.CustomerTicketId.ToString();
-                }
-
-                if (messageText != String.Empty)
-                {
-                    var message = new BrokeredMessage(messageText);
-                    client.Send(message);
-                }
+                MessageManager.SendServiceTicketAddressingMessage(serviceTicket.CustomerTicketId);
 
                 return RedirectToAction("Index");
             }
