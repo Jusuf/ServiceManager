@@ -23,12 +23,48 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
     {
         private ApplicationDbContext db = new ApplicationDbContext();
 
+        public void SaveTicketAsWithdrown(string ticketId)
+        {
+            ApplicationDbContext context = new ApplicationDbContext();
+
+            ServiceTicket serviceTicket = new ServiceTicket();
+
+            serviceTicket = context.ServiceTickets.Where(st => st.CustomerTicketId.ToString() == ticketId).FirstOrDefault();
+
+            if (serviceTicket != null)
+            {
+                serviceTicket.TicketIsWithdrawn = true;
+
+                context.Entry(serviceTicket).State = EntityState.Modified;
+
+                context.SaveChanges();
+            }
+
+        }
+
         // GET: ServiceTickets
         public ActionResult Index()
         {
+            var conectionString = CloudConfigurationManager.GetSetting("Microsoft.ServiceBus.ConnectionString");
+
+            var topic = "tickets";
+            var subscription = "addressedTickets";
+
+            var client = SubscriptionClient.CreateFromConnectionString(conectionString, topic, subscription);
+
+            List<Guid> messageList = new List<Guid>();
+
+            client.OnMessage(message =>
+            {
+                var messageContent = String.Format(message.GetBody<string>());
+
+                SaveTicketAsWithdrown(messageContent);
+                message.Complete();
+            });
+
             var userId = User.Identity.GetUserId();
 
-            var serviceTickets = db.ServiceTickets.Where(st => st.ResponsibleUser.Id == userId).ToList();
+            var serviceTickets = db.ServiceTickets.Where(st => st.ResponsibleUser.Id == userId && st.TicketIsWithdrawn == false).ToList();
 
             List<ServiceTicketViewModel> tickets = new List<ServiceTicketViewModel>();
 
@@ -220,7 +256,7 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
             // Get tickets
             var userId = User.Identity.GetUserId();
 
-            var serviceTickets = db.ServiceTickets.Where(st => st.ResponsibleUser.Id == null).ToList();
+            var serviceTickets = db.ServiceTickets.Where(st => st.ResponsibleUser.Id == null && st.TicketIsWithdrawn == false).ToList();
 
             List<ServiceTicketViewModel> tickets = new List<ServiceTicketViewModel>();
 
