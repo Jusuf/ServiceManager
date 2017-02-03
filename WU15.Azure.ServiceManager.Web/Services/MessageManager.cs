@@ -1,6 +1,9 @@
 ﻿using Microsoft.Azure;
 using Microsoft.ServiceBus;
 using Microsoft.ServiceBus.Messaging;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Queue;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -12,6 +15,68 @@ namespace WU15.Azure.ServiceManager.Web.Services
 {
     public class MessageManager
     {
+        public static void GetServiceticketObjectMessages()
+        {
+            CloudStorageAccount storageAccount
+     = CloudStorageAccount.Parse(
+         CloudConfigurationManager.GetSetting("StorageConnectionString"));
+
+            CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
+
+            CloudQueue queue = queueClient.GetQueueReference("myobjectqueue");
+
+            List<ReceivedTicket> receivedTickets = new List<ReceivedTicket>();
+
+            var messages = queue.GetMessages(32, TimeSpan.FromMinutes(2), null, null);
+
+            foreach (var message in messages)
+            {
+                try
+                {
+                    //If processing was not possible, delete the message check for unprocesible messages
+                    if (message.DequeueCount < 5)
+                    {
+                        var messageItem = JsonConvert.DeserializeObject<ReceivedTicket>(message.AsString);
+
+                        receivedTickets.Add(messageItem);
+                    }
+                    else
+                    {
+                        System.Console.WriteLine("De-queueeing failed");
+                    }
+
+                    // Delete the message so that it becomes invisible for other workers
+                    queue.DeleteMessage(message);
+                }
+                catch (Exception e)
+                {
+
+                    System.Console.WriteLine(string.Format("An excepted error occured: {0}", e.Message));
+                }
+            }
+
+            if (receivedTickets.Count > 0)
+            {
+                ApplicationDbContext context = new ApplicationDbContext();
+
+                foreach (var receivedTicket in receivedTickets)
+                {
+                    ServiceTicket newTicket = new ServiceTicket()
+                    {
+                        CreatedDate = receivedTicket.CreatedDate,
+                        CustomerEmail = receivedTicket.UserEmail,
+                        CustomerTicketId = receivedTicket.Id,
+                        CustomerId = receivedTicket.UserId,
+                        Description = receivedTicket.Description
+                    };
+                    context.ServiceTickets.Add(newTicket);
+
+                }
+
+                context.SaveChanges();
+            }
+        }
+
         public static void SaveTicketAsWithdrown(string customerTicketId)
         {
             ApplicationDbContext context = new ApplicationDbContext();
@@ -51,11 +116,11 @@ namespace WU15.Azure.ServiceManager.Web.Services
                 nameSpaceManager.CreateSubscription(topic, subscription);
             }
 
-            var client = SubscriptionClient.CreateFromConnectionString(connectionString, topic, subscription);
+            var withdrownTicketsClient = SubscriptionClient.CreateFromConnectionString(connectionString, topic, subscription);
 
             List<Guid> messageList = new List<Guid>();
 
-            client.OnMessage(message =>
+            withdrownTicketsClient.OnMessage(message =>
             {
                 var messageContent = String.Format(message.GetBody<string>());
 
@@ -82,10 +147,11 @@ namespace WU15.Azure.ServiceManager.Web.Services
             // Create subscription.
             if (!nameSpaceManager.SubscriptionExists(topic, subscription))
             {
-                nameSpaceManager.CreateSubscription(topic, subscription);
+                var description = nameSpaceManager.CreateSubscription(topic, subscription);
+                nameSpaceManager.CreateSubscription(description);
             }
 
-            TopicClient client = TopicClient.CreateFromConnectionString(connectionString, topic);
+            var doneTicketsClient = TopicClient.CreateFromConnectionString(connectionString, topic);
 
             var messageText = "";
 
@@ -97,7 +163,7 @@ namespace WU15.Azure.ServiceManager.Web.Services
             if (messageText != String.Empty)
             {
                 var message = new BrokeredMessage(messageText);
-                client.Send(message);
+                doneTicketsClient.Send(message);
             }
         }
 
@@ -119,10 +185,11 @@ namespace WU15.Azure.ServiceManager.Web.Services
             // Create subscription.
             if (!nameSpaceManager.SubscriptionExists(topic, subscription))
             {
-                nameSpaceManager.CreateSubscription(topic, subscription);
+                var description = nameSpaceManager.CreateSubscription(topic, subscription);
+                nameSpaceManager.CreateSubscription(description);
             }
 
-            TopicClient client = TopicClient.CreateFromConnectionString(connectionString, topic);
+            TopicClient addressedTicketsClient = TopicClient.CreateFromConnectionString(connectionString, topic);
 
             var messageText = "";
 
@@ -134,7 +201,7 @@ namespace WU15.Azure.ServiceManager.Web.Services
             if (messageText != String.Empty)
             {
                 var message = new BrokeredMessage(messageText);
-                client.Send(message);
+                addressedTicketsClient.Send(message);
             }
         }
     }

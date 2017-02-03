@@ -171,62 +171,7 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
 
         public ActionResult NewTickets()
         {
-            CloudStorageAccount storageAccount
-     = CloudStorageAccount.Parse(
-         CloudConfigurationManager.GetSetting("StorageConnectionString"));
-
-            CloudQueueClient queueClient = storageAccount.CreateCloudQueueClient();
-
-            CloudQueue queue = queueClient.GetQueueReference("myobjectqueue");
-
-            List<ReceivedTicket> receivedTickets = new List<ReceivedTicket>();
-
-            var messages = queue.GetMessages(32, TimeSpan.FromMinutes(2), null, null);
-
-            foreach (var message in messages)
-            {
-                try
-                {
-                    //If processing was not possible, delete the message check for unprocesible messages
-                    if (message.DequeueCount < 5)
-                    {
-                        var messageItem = JsonConvert.DeserializeObject<ReceivedTicket>(message.AsString);
-
-                        receivedTickets.Add(messageItem);
-                    }
-                    else
-                    {
-                        System.Console.WriteLine("De-queueeing failed");
-                    }
-
-                    // Delete the message so that it becomes invisible for other workers
-                    queue.DeleteMessage(message);
-                }
-                catch (Exception e)
-                {
-
-                    System.Console.WriteLine(string.Format("An excepted error occured: {0}", e.Message));
-                }
-            }
-
-            if (receivedTickets.Count > 0)
-            {
-                foreach (var receivedTicket in receivedTickets)
-                {
-                    ServiceTicket newTicket = new ServiceTicket()
-                    {
-                        CreatedDate = receivedTicket.CreatedDate,
-                        CustomerEmail = receivedTicket.UserEmail,
-                        CustomerTicketId = receivedTicket.Id,
-                        CustomerId = receivedTicket.UserId,
-                        Description = receivedTicket.Description
-                    };
-                    db.ServiceTickets.Add(newTicket);
-
-                }
-
-                db.SaveChanges();
-            }
+            MessageManager.GetServiceticketObjectMessages();
 
             // Get tickets
             var userId = User.Identity.GetUserId();
