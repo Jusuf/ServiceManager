@@ -31,7 +31,7 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
 
             var userId = User.Identity.GetUserId();
 
-            var serviceTickets = db.ServiceTickets.Include("ResponsibleUser").Where(st => st.ResponsibleUser.Id.ToString() == userId && st.TicketIsWithdrawn == false).ToList();
+            var serviceTickets = db.ServiceTickets.Include("ResponsibleUser").Where(st => st.ResponsibleUser.Id.ToString() == userId && st.TicketIsWithdrawn == false && st.Done == false).ToList();
 
             List<ServiceTicketViewModel> tickets = new List<ServiceTicketViewModel>();
 
@@ -122,18 +122,21 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "Id,Description,Done,TicketIsWithdrawn,CreatedDate,DoneDate,CustomerTicketId,CustomerId,CustomerEmail")] ServiceTicket serviceTicket)
+        public ActionResult Edit(ServiceTicket serviceTicket)
         {
+            
+            //var ticketBeforeUpdate = db.ServiceTickets.Find(serviceTicket.Id);
+
             if (ModelState.IsValid)
             {
-                var ticketBeforeUpdate = db.ServiceTickets.Find(serviceTicket);
+                //db.Entry(serviceTicket).State = EntityState.Modified;
+                ServiceTicket sticket = db.ServiceTickets.Where(st => st.Id == serviceTicket.Id).First();
+                sticket.DoneDate = serviceTicket.DoneDate ?? DateTime.Now;
+                sticket.Done = serviceTicket.Done;
 
-                db.Entry(serviceTicket).State = EntityState.Modified;
                 db.SaveChanges();
 
-                // Send message
-
-                if (serviceTicket.Done && !ticketBeforeUpdate.Done)
+                if (serviceTicket.Done)
                 {
                     MessageManager.SendServiceTicketDoneMessage(serviceTicket.CustomerTicketId);
                 }
@@ -160,7 +163,7 @@ namespace WU15.Azure.ServiceManager.Web.Controllers
 
         // POST: ServiceTickets/Delete/5
         [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
+       
         public ActionResult DeleteConfirmed(Guid id)
         {
             ServiceTicket serviceTicket = db.ServiceTickets.Find(id);

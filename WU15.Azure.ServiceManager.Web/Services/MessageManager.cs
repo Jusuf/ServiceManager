@@ -100,7 +100,7 @@ namespace WU15.Azure.ServiceManager.Web.Services
         {
             var connectionString = CloudConfigurationManager.GetSetting("Microsoft.ServiceBus.ConnectionString");
 
-            var topic = "tickets";
+            var topic = "ticketsw";
             var subscription = "withdrownTickets";
 
             var nameSpaceManager = NamespaceManager.CreateFromConnectionString(connectionString);
@@ -135,7 +135,7 @@ namespace WU15.Azure.ServiceManager.Web.Services
 
             var nameSpaceManager = NamespaceManager.CreateFromConnectionString(connectionString);
 
-            var topic = "tickets";
+            var topic = "ticketsd";
             var subscription = "doneTickets";
 
             // Create a topic.
@@ -173,7 +173,7 @@ namespace WU15.Azure.ServiceManager.Web.Services
 
             var nameSpaceManager = NamespaceManager.CreateFromConnectionString(connectionString);
 
-            var topic = "tickets";
+            var topic = "ticketsa";
             var subscription = "addressedTickets";
 
             // Create a topic.
